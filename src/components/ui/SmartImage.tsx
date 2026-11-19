@@ -9,13 +9,21 @@ interface Props {
   priority?: boolean;
   /** Show the dish name on the fallback when the photo fails (off for thumbnails). */
   showLabel?: boolean;
+  /** Responsive sizes hint for the generated Unsplash srcset. */
+  sizes?: string;
+}
+
+/** Build a width-based srcset for Unsplash URLs (other URLs are left as-is). */
+function srcSetFor(src: string) {
+  if (!src.includes("images.unsplash.com") || !/[?&]w=\d+/.test(src)) return undefined;
+  return [320, 480, 720, 960, 1280].map((w) => `${src.replace(/([?&])w=\d+/, `$1w=${w}`)} ${w}w`).join(", ");
 }
 
 /**
  * Remote food photo with a graceful fallback: if the image fails to load,
  * a warm ember gradient with the dish name is shown instead of a broken icon.
  */
-export default function SmartImage({ src, alt, className = "", priority = false, showLabel = true }: Props) {
+export default function SmartImage({ src, alt, className = "", priority = false, showLabel = true, sizes = "(min-width: 1024px) 25vw, (min-width: 640px) 50vw, 100vw" }: Props) {
   const [state, setState] = useState<"loading" | "ok" | "error">("loading");
 
   return (
@@ -38,7 +46,10 @@ export default function SmartImage({ src, alt, className = "", priority = false,
         // eslint-disable-next-line @next/next/no-img-element
         <img
           src={src}
+          srcSet={srcSetFor(src)}
+          sizes={srcSetFor(src) ? sizes : undefined}
           alt={alt}
+          fetchPriority={priority ? "high" : "auto"}
           loading={priority ? "eager" : "lazy"}
           decoding="async"
           onLoad={() => setState("ok")}

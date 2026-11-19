@@ -1,7 +1,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { promos } from "@/lib/promos";
+import { promos, type Promo } from "@/lib/promos";
+import { useCart } from "@/context/CartContext";
 import { scrollToId } from "@/lib/scroll";
 import { images } from "@/data/menu";
 import SectionHeading from "./ui/SectionHeading";
@@ -51,6 +52,22 @@ function CopyCode({ code }: { code: string }) {
       <span className="font-sans text-[10px] font-bold uppercase tracking-wider text-cream/60 group-hover:text-cream">
         {copied ? "Copied ✓" : "Copy"}
       </span>
+    </button>
+  );
+}
+
+function UseCode({ promo, label = "Apply to order →" }: { promo: Promo; label?: string }) {
+  const { applyCoupon, coupon } = useCart();
+  const active = coupon?.code === promo.code;
+  return (
+    <button
+      onClick={() => {
+        applyCoupon(promo.code);
+        scrollToId("order");
+      }}
+      className={`text-xs font-bold uppercase tracking-wider transition ${active ? "text-gold" : "text-cream/70 hover:text-ember"}`}
+    >
+      {active ? "✓ Applied" : label}
     </button>
   );
 }
@@ -125,10 +142,11 @@ export default function Offers() {
                 <CopyCode code={main.code} />
                 <button
                   onClick={() => scrollToId("menu")}
-                  className="rounded-full bg-ember px-6 py-3 text-xs font-bold uppercase tracking-wider text-ink transition hover:bg-flame"
+                  className="btn-shine rounded-full bg-ember px-6 py-3 text-xs font-bold uppercase tracking-wider text-ink transition hover:bg-flame"
                 >
                   Build your feast →
                 </button>
+                <UseCode promo={main} label="Apply code" />
               </div>
             </div>
           </article>
@@ -150,12 +168,7 @@ export default function Offers() {
               <p className="mt-3 flex-1 text-sm text-smoke">{p.description}</p>
               <div className="mt-6 flex items-center justify-between gap-3">
                 <CopyCode code={p.code} />
-                <button
-                  onClick={() => scrollToId("order")}
-                  className="text-xs font-bold uppercase tracking-wider text-cream/70 transition hover:text-ember"
-                >
-                  Use it →
-                </button>
+                <UseCode promo={p} />
               </div>
             </article>
           ))}

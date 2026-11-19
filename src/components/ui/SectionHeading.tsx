@@ -19,7 +19,7 @@ export default function SectionHeading({ eyebrow, title, intro, align = "left" }
         {eyebrow}
         {center && <span className="h-px w-8 bg-gold" />}
       </p>
-      <h2 data-reveal className="font-display text-[clamp(2.25rem,5vw,4rem)] font-light leading-[1.02] tracking-tight">
+      <h2 data-reveal="heading" className="font-display text-[clamp(2.25rem,5vw,4rem)] font-light leading-[1.02] tracking-tight">
         {title}
       </h2>
       {intro && (

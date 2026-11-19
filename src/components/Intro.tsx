@@ -54,9 +54,11 @@ export default function Intro() {
     <section id="story" ref={root} className="relative overflow-hidden py-28 md:py-40">
       <div className="mx-auto grid max-w-7xl items-center gap-16 px-6 lg:grid-cols-2 lg:gap-24 lg:px-10">
         <div className="relative order-2 lg:order-1">
-          <div className="parallax-slow relative aspect-[4/5] w-[85%] overflow-hidden rounded-[2rem]">
-            <SmartImage src={images.interior} alt="Inside the Smokehouse dining room" className="h-full w-full scale-110" />
+          <div className="parallax-slow relative aspect-[4/5] w-[85%]">
+            <div data-reveal="image" className="relative h-full w-full overflow-hidden rounded-[2rem]">
+            <SmartImage sizes="(min-width: 1024px) 40vw, 85vw" src={images.interior} alt="Inside the Smokehouse dining room" className="h-full w-full" />
             <div className="absolute inset-0 bg-gradient-to-t from-ink/70 via-transparent to-transparent" />
+            </div>
           </div>
           <div className="parallax-fast absolute -bottom-10 right-0 aspect-square w-[48%] overflow-hidden rounded-[1.5rem] border-4 border-ink shadow-2xl">
             <SmartImage src={images.pitmaster} alt="Meat smoking over the fire" className="h-full w-full" />

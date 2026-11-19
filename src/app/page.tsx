@@ -9,11 +9,13 @@ import Offers from "@/components/Offers";
 import Reviews from "@/components/Reviews";
 import OrderSection from "@/components/OrderSection";
 import CartDrawer from "@/components/CartDrawer";
+import ProductModalProvider from "@/components/ProductModal";
 import { Contact, Footer } from "@/components/Contact";
 
 export default function Home() {
   return (
     <CartProvider>
+      <ProductModalProvider>
       <SmoothScroll />
       <Navbar />
       <main>
@@ -28,6 +30,7 @@ export default function Home() {
       </main>
       <Footer />
       <CartDrawer />
+      </ProductModalProvider>
     </CartProvider>
   );
 }

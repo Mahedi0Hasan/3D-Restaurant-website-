@@ -23,7 +23,7 @@ function TiltCard({ item, index }: { item: MenuItem; index: number }) {
   const reset = () => setTilt({ rx: 0, ry: 0, gx: 50, gy: 50, active: false });
 
   return (
-    <div data-reveal className="[perspective:1200px]" style={{ transitionDelay: `${index * 60}ms` }}>
+    <div data-reveal data-fly-scope className="[perspective:1200px]" style={{ transitionDelay: `${index * 60}ms` }}>
       <div
         ref={ref}
         onPointerMove={onMove}
@@ -48,7 +48,7 @@ function TiltCard({ item, index }: { item: MenuItem; index: number }) {
         >
           {/* Front */}
           <div className="absolute inset-0 overflow-hidden rounded-[1.75rem] border border-cream/10 [backface-visibility:hidden]">
-            <SmartImage src={item.image} alt={item.name} showLabel={false} className="h-full w-full" />
+            <div data-fly-img className="h-full w-full"><SmartImage src={item.image} alt={item.name} showLabel={false} className="h-full w-full" /></div>
             <div className="absolute inset-0 bg-gradient-to-t from-ink via-ink/30 to-transparent" />
             <div
               aria-hidden

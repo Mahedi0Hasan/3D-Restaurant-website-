@@ -117,6 +117,7 @@ export default function Navbar() {
 
           <div className="flex items-center gap-3">
             <button
+              id="cart-button"
               onClick={() => setOpen(true)}
               aria-label={`Open cart, ${count} items`}
               className={`relative flex h-11 w-11 items-center justify-center rounded-full border border-cream/15 transition hover:border-gold ${

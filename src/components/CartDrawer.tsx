@@ -5,10 +5,23 @@ import { FREE_DELIVERY_OVER, money, useCart } from "@/context/CartContext";
 import { getItem } from "@/data/menu";
 import { getLenis, scrollToId } from "@/lib/scroll";
 import SmartImage from "./ui/SmartImage";
+import CouponBox from "./ui/CouponBox";
+import PriceSummary from "./ui/PriceSummary";
 
 export default function CartDrawer() {
-  const { open, setOpen, lines, subtotal, setQty, remove, count, lastAdded } = useCart();
+  const { open, setOpen, lines, setQty, remove, clear, count, lastAdded, mode, setMode, pricing } = useCart();
   const [toast, setToast] = useState<string | null>(null);
+  const [inOrder, setInOrder] = useState(false);
+
+  // hide the mobile order bar while the checkout section is on screen
+  useEffect(() => {
+    const el = document.getElementById("order");
+    if (!el) return;
+    const io = new IntersectionObserver(([e]) => setInOrder(e.isIntersecting), { threshold: 0.05 });
+    io.observe(el);
+    return () => io.disconnect();
+  }, []);
+  const showBar = count > 0 && !open && !inOrder;
 
   useEffect(() => {
     const l = getLenis();
@@ -28,7 +41,7 @@ export default function CartDrawer() {
     return () => clearTimeout(t);
   }, [lastAdded]);
 
-  const progress = Math.min(1, subtotal / FREE_DELIVERY_OVER);
+  const progress = Math.min(1, (FREE_DELIVERY_OVER - pricing.freeDeliveryShortfall) / FREE_DELIVERY_OVER);
 
   return (
     <>
@@ -36,7 +49,7 @@ export default function CartDrawer() {
       <div
         role="status"
         aria-live="polite"
-        className={`fixed bottom-6 left-1/2 z-[65] -translate-x-1/2 transition-all duration-500 ${
+        className={`fixed left-1/2 z-[65] -translate-x-1/2 transition-all duration-500 ${showBar ? "bottom-24 lg:bottom-6" : "bottom-6"} ${
           toast && !open ? "translate-y-0 opacity-100" : "pointer-events-none translate-y-6 opacity-0"
         }`}
       >
@@ -47,6 +60,26 @@ export default function CartDrawer() {
           <span className="flex h-7 w-7 items-center justify-center rounded-full bg-ember text-xs font-bold text-ink">✓</span>
           {toast}
           <span className="text-xs font-bold uppercase tracking-wider text-ember">View</span>
+        </button>
+      </div>
+
+      {/* Mobile order bar */}
+      <div
+        className={`fixed inset-x-3 bottom-3 z-[55] transition-all duration-500 ease-[cubic-bezier(.2,.8,.2,1)] lg:hidden ${
+          showBar ? "translate-y-0 opacity-100" : "pointer-events-none translate-y-[130%] opacity-0"
+        }`}
+      >
+        <button
+          onClick={() => setOpen(true)}
+          className="flex w-full items-center justify-between rounded-full bg-ember py-2 pl-2 pr-6 text-ink shadow-[0_16px_40px_-10px_rgba(255,122,26,0.7)] active:scale-[0.98]"
+          aria-label={`View order, ${count} items, ${money(pricing.total)}`}
+          tabIndex={showBar ? 0 : -1}
+        >
+          <span className="flex items-center gap-3">
+            <span className="flex h-11 w-11 items-center justify-center rounded-full bg-ink text-sm font-bold text-ember tabular-nums">{count}</span>
+            <span className="text-sm font-bold uppercase tracking-wider">View order</span>
+          </span>
+          <span className="font-display text-lg font-semibold tabular-nums">{money(pricing.total)}</span>
         </button>
       </div>
 
@@ -70,19 +103,26 @@ export default function CartDrawer() {
           open ? "translate-x-0" : "translate-x-full"
         }`}
       >
-        <div className="flex items-center justify-between border-b border-cream/10 p-6">
-          <h2 className="font-display text-2xl font-light">
-            Your order <span className="text-base text-smoke">({count})</span>
-          </h2>
+        <div className="flex items-center justify-between border-b border-cream/10 p-5 sm:p-6">
+          <div className="flex items-baseline gap-4">
+            <h2 className="font-display text-2xl font-light">
+              Your order <span className="text-base text-smoke">({count})</span>
+            </h2>
+            {lines.length > 0 && (
+              <button onClick={clear} className="text-[11px] font-semibold uppercase tracking-wider text-smoke transition hover:text-ember">
+                Clear all
+              </button>
+            )}
+          </div>
           <button onClick={() => setOpen(false)} aria-label="Close cart" className="flex h-10 w-10 items-center justify-center rounded-full border border-cream/15 text-lg hover:border-gold">
             ×
           </button>
         </div>
 
-        {lines.length > 0 && (
-          <div className="border-b border-cream/10 px-6 py-4">
+        {lines.length > 0 && mode === "delivery" && (
+          <div className="border-b border-cream/10 px-5 py-4 sm:px-6">
             <p className="text-xs text-smoke">
-              {progress >= 1 ? "🔥 You've unlocked free delivery!" : `${money(FREE_DELIVERY_OVER - subtotal)} away from free delivery`}
+              {progress >= 1 ? "🔥 You've unlocked free delivery!" : `${money(pricing.freeDeliveryShortfall)} away from free delivery`}
             </p>
             <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-cream/10">
               <div className="h-full rounded-full bg-gradient-to-r from-ember to-gold transition-all duration-700" style={{ width: `${progress * 100}%` }} />
@@ -90,7 +130,7 @@ export default function CartDrawer() {
           </div>
         )}
 
-        <div className="flex-1 overflow-y-auto p-6" data-lenis-prevent>
+        <div className="flex-1 overflow-y-auto overscroll-contain p-5 sm:p-6" data-lenis-prevent>
           {lines.length === 0 ? (
             <div className="flex h-full flex-col items-center justify-center text-center">
               <div className="text-5xl">🍔</div>
@@ -109,8 +149,8 @@ export default function CartDrawer() {
           ) : (
             <ul className="space-y-5">
               {lines.map(({ item, qty }) => (
-                <li key={item.id} className="flex gap-4">
-                  <SmartImage showLabel={false} src={item.image.replace("w=900", "w=240")} alt={item.name} className="h-20 w-20 shrink-0 rounded-2xl" />
+                <li key={item.id} className="flex gap-4 animate-[fade-up_0.45s_ease-out]">
+                  <SmartImage sizes="96px" showLabel={false} src={item.image.replace("w=900", "w=240")} alt={item.name} className="h-20 w-20 shrink-0 rounded-2xl" />
                   <div className="flex flex-1 flex-col">
                     <div className="flex justify-between gap-2">
                       <span className="font-semibold">{item.name}</span>
@@ -119,9 +159,9 @@ export default function CartDrawer() {
                     <span className="text-xs text-smoke">{money(item.price)} each</span>
                     <div className="mt-auto flex items-center justify-between">
                       <div className="flex items-center rounded-full border border-cream/15">
-                        <button onClick={() => setQty(item.id, qty - 1)} aria-label={`Remove one ${item.name}`} className="h-8 w-8 hover:text-ember">−</button>
+                        <button onClick={() => setQty(item.id, qty - 1)} aria-label={`Remove one ${item.name}`} className="h-9 w-9 rounded-full transition hover:text-ember active:scale-90">−</button>
                         <span className="w-6 text-center text-sm">{qty}</span>
-                        <button onClick={() => setQty(item.id, qty + 1)} aria-label={`Add one ${item.name}`} className="h-8 w-8 hover:text-ember">+</button>
+                        <button onClick={() => setQty(item.id, qty + 1)} aria-label={`Add one ${item.name}`} className="h-9 w-9 rounded-full transition hover:text-ember active:scale-90">+</button>
                       </div>
                       <button onClick={() => remove(item.id)} className="text-xs text-smoke underline-offset-4 hover:text-ember hover:underline">
                         Remove
@@ -135,18 +175,29 @@ export default function CartDrawer() {
         </div>
 
         {lines.length > 0 && (
-          <div className="border-t border-cream/10 p-6">
-            <div className="flex justify-between font-display text-xl">
-              <span>Subtotal</span>
-              <span className="text-gold">{money(subtotal)}</span>
+          <div className="space-y-4 border-t border-cream/10 bg-ink/40 p-5 sm:p-6">
+            <div role="radiogroup" aria-label="Order type" className="grid grid-cols-2 gap-1 rounded-full border border-cream/10 bg-ink/60 p-1">
+              {(["delivery", "pickup"] as const).map((m) => (
+                <button
+                  key={m}
+                  type="button"
+                  role="radio"
+                  aria-checked={mode === m}
+                  onClick={() => setMode(m)}
+                  className={`rounded-full py-2 text-xs font-semibold capitalize transition ${mode === m ? "bg-cream/10 text-cream" : "text-smoke hover:text-cream"}`}
+                >
+                  {m}
+                </button>
+              ))}
             </div>
-            <p className="mt-1 text-xs text-smoke">Tax, delivery and promo codes at checkout.</p>
+            <CouponBox idPrefix="drawer-promo" />
+            <PriceSummary compact />
             <button
               onClick={() => {
                 setOpen(false);
                 setTimeout(() => scrollToId("order"), 300);
               }}
-              className="mt-5 w-full rounded-full bg-ember py-4 text-sm font-bold uppercase tracking-wider text-ink transition hover:bg-flame"
+              className="btn-shine w-full rounded-full bg-ember py-4 text-sm font-bold uppercase tracking-wider text-ink transition hover:bg-flame active:scale-[0.98]"
             >
               Checkout →
             </button>

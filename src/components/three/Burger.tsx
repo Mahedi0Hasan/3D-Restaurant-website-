@@ -231,6 +231,7 @@ export default function Burger({ progress, pointer }: BurgerProps) {
     <group position={[x, y, 0]} scale={scale}>
       <group
         ref={group}
+        rotation-x={0.32}
         onClick={(e) => {
           e.stopPropagation();
           setExploded((v) => !v);

@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import SectionHeading from "./ui/SectionHeading";
 import { Logo, NAV } from "./Navbar";
 import { scrollToId } from "@/lib/scroll";
+import Reservation from "./Reservation";
 
 const hours = [
   { d: "Mon – Thu", h: "11:00 – 22:00", open: 11, close: 22, days: [1, 2, 3, 4] },
@@ -26,21 +27,6 @@ function useOpenNow() {
 
 export function Contact() {
   const openNow = useOpenNow();
-  const [form, setForm] = useState({ name: "", email: "", guests: "2", date: "", message: "" });
-  const [state, setState] = useState<"idle" | "error" | "sent">("idle");
-
-  const submit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (form.name.trim().length < 2 || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)) {
-      setState("error");
-      return;
-    }
-    setState("sent");
-  };
-
-  const input =
-    "w-full rounded-2xl border border-cream/10 bg-ink/60 px-4 py-3.5 text-sm text-cream placeholder:text-smoke/50 outline-none transition focus:border-gold focus:ring-2 focus:ring-gold/20";
-
   return (
     <section id="contact" className="relative py-28 md:py-36">
       <div aria-hidden className="absolute inset-x-0 top-0 hairline" />
@@ -54,7 +40,7 @@ export function Contact() {
           }
         />
 
-        <div className="mt-14 grid gap-8 lg:grid-cols-2">
+        <div className="mt-12 grid gap-6 md:mt-14 lg:grid-cols-2 lg:gap-8">
           <div data-reveal className="space-y-6">
             {/* Stylised map */}
             <a
@@ -117,60 +103,9 @@ export function Contact() {
             </div>
           </div>
 
-          <form data-reveal onSubmit={submit} noValidate className="rounded-[2rem] border border-cream/10 bg-coal p-6 md:p-10" aria-label="Reservation request">
-            <h3 className="font-display text-3xl font-light">Reserve a table</h3>
-            <p className="mt-2 text-sm text-smoke">We&apos;ll confirm by email within the hour.</p>
-            {state === "sent" ? (
-              <div className="mt-10 rounded-3xl border border-gold/30 bg-ink/50 p-8 text-center" role="status">
-                <div className="text-4xl">🔥</div>
-                <p className="mt-4 font-display text-2xl">Request received</p>
-                <p className="mt-2 text-sm text-smoke">
-                  Thanks {form.name.split(" ")[0]}, we&apos;ll be in touch about your table for {form.guests}. (Demo, nothing was sent.)
-                </p>
-                <button
-                  type="button"
-                  onClick={() => {
-                    setState("idle");
-                    setForm({ name: "", email: "", guests: "2", date: "", message: "" });
-                  }}
-                  className="mt-6 text-xs font-bold uppercase tracking-wider text-ember"
-                >
-                  Make another request
-                </button>
-              </div>
-            ) : (
-              <div className="mt-8 grid gap-5 sm:grid-cols-2">
-                <div>
-                  <label htmlFor="c-name" className="mb-2 block text-xs font-semibold uppercase tracking-widest text-smoke">Name *</label>
-                  <input id="c-name" className={input} value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} autoComplete="name" />
-                </div>
-                <div>
-                  <label htmlFor="c-email" className="mb-2 block text-xs font-semibold uppercase tracking-widest text-smoke">Email *</label>
-                  <input id="c-email" type="email" className={input} value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} autoComplete="email" />
-                </div>
-                <div>
-                  <label htmlFor="c-guests" className="mb-2 block text-xs font-semibold uppercase tracking-widest text-smoke">Guests</label>
-                  <select id="c-guests" className={input} value={form.guests} onChange={(e) => setForm({ ...form, guests: e.target.value })}>
-                    {["1", "2", "3", "4", "5", "6", "8", "10+"].map((g) => (
-                      <option key={g}>{g}</option>
-                    ))}
-                  </select>
-                </div>
-                <div>
-                  <label htmlFor="c-date" className="mb-2 block text-xs font-semibold uppercase tracking-widest text-smoke">Date</label>
-                  <input id="c-date" type="date" className={`${input} [color-scheme:dark]`} value={form.date} onChange={(e) => setForm({ ...form, date: e.target.value })} />
-                </div>
-                <div className="sm:col-span-2">
-                  <label htmlFor="c-msg" className="mb-2 block text-xs font-semibold uppercase tracking-widest text-smoke">Message</label>
-                  <textarea id="c-msg" rows={4} className={input} value={form.message} onChange={(e) => setForm({ ...form, message: e.target.value })} placeholder="Birthday, allergies, preferred seating…" />
-                </div>
-                {state === "error" && <p className="text-xs text-ember sm:col-span-2" role="alert">Please add your name and a valid email.</p>}
-                <button type="submit" className="rounded-full bg-ember py-4 text-sm font-bold uppercase tracking-wider text-ink transition hover:bg-flame sm:col-span-2">
-                  Request reservation
-                </button>
-              </div>
-            )}
-          </form>
+          <div data-reveal>
+            <Reservation />
+          </div>
         </div>
       </div>
     </section>
